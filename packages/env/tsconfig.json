@@ -1,0 +1,3 @@
+{
+  "extends": "@rooms/config/tsconfig.base.json"
+}
