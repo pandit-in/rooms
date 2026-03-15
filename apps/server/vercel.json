@@ -3,10 +3,11 @@
   "buildCommand": "bun run build",
   "installCommand": "bun install",
   "framework": null,
+  "outputDirectory": ".",
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "dist/index.mjs"
+      "destination": "api/index.mjs"
     }
   ]
 }
