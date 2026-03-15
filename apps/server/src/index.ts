@@ -10,10 +10,14 @@ import { logger } from "hono/logger";
 const app = new Hono();
 
 app.use(logger());
+const allowedOrigins = env.CORS_ORIGIN.split(",").map((o) => o.trim());
+
 app.use(
   "/*",
   cors({
-    origin: env.CORS_ORIGIN,
+    origin: (origin) => {
+      return allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
+    },
     allowMethods: ["GET", "POST", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization"],
     credentials: true,

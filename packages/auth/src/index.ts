@@ -12,7 +12,7 @@ export const auth = betterAuth({
     schema: schema,
   }),
   trustedOrigins: [
-    env.CORS_ORIGIN,
+    ...env.CORS_ORIGIN.split(",").map((o) => o.trim()),
     "rooms://",
     ...(env.NODE_ENV === "development"
       ? ["exp://", "exp://**", "exp://192.168.*.*:*/**", "http://localhost:8081"]
@@ -25,8 +25,8 @@ export const auth = betterAuth({
   baseURL: env.BETTER_AUTH_URL,
   advanced: {
     defaultCookieAttributes: {
-      sameSite: "none",
-      secure: true,
+      sameSite: env.NODE_ENV === "development" ? "lax" : "none",
+      secure: env.NODE_ENV !== "development",
       httpOnly: true,
     },
   },
