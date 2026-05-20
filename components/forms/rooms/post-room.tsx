@@ -38,7 +38,7 @@ import {
 } from "@/components/ui/select"
 
 import { useRouter } from "next/navigation"
-import { createRoomAction } from "@/app/actions/room.actions"
+import { createRoomAction } from "@/app/actions/room"
 
 const RoomLocationPicker = dynamic(
   () => import("@/components/maps/room-location-picker"),
@@ -117,16 +117,14 @@ export function PostRoomForm() {
       try {
         const result = await createRoomAction(data)
         if (result?.error) {
-          toast.error("Error", { description: result.error })
+          toast.error(result.error)
         } else if (result?.success) {
-          toast.success("Success!", {
-            description: "Room posted successfully!",
-          })
+          toast.success("Room posted successfully!")
           router.push("/")
         }
       } catch (err) {
         console.log(err)
-        toast.error("Error", { description: "Something went wrong." })
+        toast.error("Failed to post room.")
       }
     })
   }

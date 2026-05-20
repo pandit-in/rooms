@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useState } from "react"
-import { getRoomsAction } from "@/app/actions/room.actions"
+import { getRoomsAction } from "@/app/actions/room"
 import {
   Card,
   CardContent,
@@ -13,7 +13,7 @@ import {
 import { Room } from "@/db/schemas"
 import Image from "next/image"
 import Link from "next/link"
-import { UserCircleIcon } from "@phosphor-icons/react"
+import { NavigationArrowIcon, UserCircleIcon } from "@phosphor-icons/react"
 
 function getDistanceInKm(
   lat1: number,
@@ -97,7 +97,6 @@ export function RoomFeed() {
     loadRooms()
   }, [])
 
-
   if (isLoading) {
     return (
       <div className="animate-pulse py-10 text-center text-muted-foreground">
@@ -115,22 +114,10 @@ export function RoomFeed() {
   }
 
   return (
-    <div className="flex w-full flex-col gap-6 pt-8">
+    <div className="flex w-full flex-col gap-6 pt-4">
       {locationStatus === "granted" && (
-        <div className="inline-flex items-center gap-2 self-start rounded-md border border-green-500/20 bg-green-500/10 px-4 py-2 text-sm font-medium text-green-600">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <polygon points="3 11 22 2 13 21 11 13 3 11" />
-          </svg>
+        <div className="inline-flex items-center gap-2 self-start border border-green-500/20 bg-green-500/10 px-2 py-1 text-xs font-medium text-green-600 md:text-sm">
+          <NavigationArrowIcon size={18} />
           Showing rooms nearest to your location
         </div>
       )}

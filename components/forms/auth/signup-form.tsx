@@ -1,92 +1,239 @@
-import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
   Field,
-  FieldDescription,
+  FieldError,
   FieldGroup,
   FieldLabel,
   FieldSeparator,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import Image from "next/image"
+import { authClient } from "@/lib/auth-client"
+import { useRouter } from "next/navigation"
+import React from "react"
+import { toast } from "sonner"
+import { SpinnerIcon, XIcon } from "@phosphor-icons/react"
+import z from "zod"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { Controller, useForm } from "react-hook-form"
+import { CardContent } from "@/components/ui/card"
+import { AvatarUploader } from "@/components/uploads/avatar"
 
-export function SignupForm({
-  className,
-  ...props
-}: React.ComponentProps<"form">) {
+export const formSchema = z.object({
+  image: z.string().optional(),
+  email: z.email(),
+  password: z.string().min(6),
+  confirmPassword: z.string().min(6),
+  name: z.string(),
+})
+
+type FormValues = z.infer<typeof formSchema>
+
+export function SignUpForm() {
+  const [isPending, startTransition] = React.useTransition()
+  const router = useRouter()
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      image: "",
+    },
+  })
+
+  function onSubmit(data: FormValues) {
+    startTransition(async () => {
+      try {
+        const { error } = await authClient.signUp.email(data)
+        if (error) {
+          toast.error(error.message)
+        } else {
+          toast.success("Account created successfully!")
+          router.push("/onboarding")
+        }
+      } catch (err) {
+        console.log(err)
+        toast.error("Something went wrong.")
+      }
+    })
+  }
+
+  async function googleSignIn() {
+    startTransition(async () => {
+      try {
+        await authClient.signIn.social({
+          provider: "google",
+          callbackURL: "/onboarding",
+        })
+        toast.success("Signed in with Google")
+        router.push("/onboarding")
+      } catch (error) {
+        console.log(error)
+        toast.error("Failed to sign in with Google")
+      }
+    })
+  }
   return (
-    <form className={cn("flex flex-col gap-6", className)} {...props}>
-      <FieldGroup>
-        <div className="flex flex-col items-center gap-1 text-center">
-          <h1 className="text-2xl font-bold">Create your account</h1>
-          <p className="text-sm text-balance text-muted-foreground">
-            Fill in the form below to create your account
-          </p>
-        </div>
-        <Field>
-          <FieldLabel htmlFor="name">Full Name</FieldLabel>
-          <Input
-            id="name"
-            type="text"
-            placeholder="John Doe"
-            required
-            className="bg-background"
-          />
-        </Field>
-        <Field>
-          <FieldLabel htmlFor="email">Email</FieldLabel>
-          <Input
-            id="email"
-            type="email"
-            placeholder="m@example.com"
-            required
-            className="bg-background"
-          />
-          <FieldDescription>
-            We&apos;ll use this to contact you. We will not share your email
-            with anyone else.
-          </FieldDescription>
-        </Field>
-        <Field>
-          <FieldLabel htmlFor="password">Password</FieldLabel>
-          <Input
-            id="password"
-            type="password"
-            required
-            className="bg-background"
-          />
-          <FieldDescription>
-            Must be at least 8 characters long.
-          </FieldDescription>
-        </Field>
-        <Field>
-          <FieldLabel htmlFor="confirm-password">Confirm Password</FieldLabel>
-          <Input
-            id="confirm-password"
-            type="password"
-            required
-            className="bg-background"
-          />
-          <FieldDescription>Please confirm your password.</FieldDescription>
-        </Field>
-        <Field>
-          <Button type="submit">Create Account</Button>
-        </Field>
-        <FieldSeparator>Or continue with</FieldSeparator>
-        <Field>
-          <Button variant="outline" type="button">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-              <path
-                d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"
-                fill="currentColor"
+    <div>
+      <div className="w-full">
+        <CardContent>
+          <form id="signup-form" onSubmit={form.handleSubmit(onSubmit)}>
+            <FieldGroup>
+              <Controller
+                name="image"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="signup-image">Avatar</FieldLabel>
+                    {field.value ? (
+                      <div className="relative flex items-center gap-4">
+                        <Image
+                          src={field.value}
+                          alt={`Preview`}
+                          className="h-20 w-20 rounded-full object-cover"
+                          width={100}
+                          height={100}
+                        />
+                        <Button
+                          type="button"
+                          size={"sm"}
+                          onClick={() => form.setValue("image", "")}
+                          variant="destructive"
+                          className="cursor-pointer p-1"
+                        >
+                          <XIcon size={16} /> remove
+                        </Button>
+                      </div>
+                    ) : (
+                      <AvatarUploader
+                        onUploadSuccess={(url) => {
+                          form.setValue("image", url, {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                          })
+                        }}
+                      />
+                    )}
+
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
               />
-            </svg>
-            Sign up with GitHub
-          </Button>
-          <FieldDescription className="px-6 text-center">
-            Already have an account? <a href="#">Sign in</a>
-          </FieldDescription>
-        </Field>
-      </FieldGroup>
-    </form>
+              <Controller
+                name="name"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="signup-name">Name</FieldLabel>
+                    <Input
+                      {...field}
+                      id="signup-name"
+                      aria-invalid={fieldState.invalid}
+                      placeholder="name"
+                      autoComplete="name"
+                    />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+              <Controller
+                name="email"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="signup-email">Email</FieldLabel>
+                    <Input
+                      {...field}
+                      id="signup-email"
+                      placeholder="email@example.com"
+                      autoComplete="email"
+                      aria-invalid={fieldState.invalid}
+                    />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+              <Controller
+                name="password"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="signup-password">Password</FieldLabel>
+                    <Input
+                      {...field}
+                      id="signup-password"
+                      placeholder="********"
+                      aria-invalid={fieldState.invalid}
+                      type="password"
+                    />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+              <Controller
+                name="confirmPassword"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="signup-confirmPassword">
+                      Confirm Password
+                    </FieldLabel>
+                    <Input
+                      {...field}
+                      id="signup-confirmPassword"
+                      placeholder="********"
+                      aria-invalid={fieldState.invalid}
+                      type="password"
+                    />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+              <FieldSeparator>Or continue with</FieldSeparator>
+
+              <Button
+                disabled={isPending}
+                variant="outline"
+                type="button"
+                className="cursor-pointer"
+                onClick={googleSignIn}
+              >
+                {isPending && <SpinnerIcon className="h-4 w-4 animate-spin" />}
+                <Image height={16} width={16} src="/google.png" alt="Google" />
+                Login with Google
+              </Button>
+              <Button
+                type="submit"
+                form="signup-form"
+                className={"w-full cursor-pointer"}
+                disabled={isPending}
+              >
+                {isPending ? "Creating..." : "Create Account"}
+              </Button>
+            </FieldGroup>
+          </form>
+        </CardContent>
+      </div>
+    </div>
   )
 }

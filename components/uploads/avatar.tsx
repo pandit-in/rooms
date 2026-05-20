@@ -2,6 +2,8 @@
 "use client"
 
 import { CldUploadWidget } from "next-cloudinary"
+import { Button } from "../ui/button"
+import { CameraIcon } from "@phosphor-icons/react"
 
 interface AvatarUploaderProps {
   onUploadSuccess: (url: string) => void
@@ -23,13 +25,14 @@ export function AvatarUploader({ onUploadSuccess }: AvatarUploaderProps) {
     >
       {({ open }) => {
         return (
-          <button
+          <Button
             type="button"
             onClick={() => open()}
-            className="rounded-md bg-indigo-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            variant="outline"
+            className="w-full cursor-pointer"
           >
-            Upload Avatar
-          </button>
+            <CameraIcon size={24} /> Upload Avatar
+          </Button>
         )
       }}
     </CldUploadWidget>

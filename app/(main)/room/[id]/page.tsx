@@ -18,6 +18,7 @@ import {
   PhoneIcon,
 } from "@phosphor-icons/react/dist/ssr"
 import { MapWrapper } from "@/components/maps/map-wrapper"
+import { BookingButton } from "@/components/rooms/booking-button"
 
 export default async function RoomPage({
   params,
@@ -169,6 +170,8 @@ export default async function RoomPage({
               </div>
 
               <div className="mt-2 flex flex-col gap-5">
+                <BookingButton roomId={room.id} />
+                
                 <h3 className="text-lg font-semibold">Contact Owner</h3>
                 <div className="flex items-center gap-4">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">

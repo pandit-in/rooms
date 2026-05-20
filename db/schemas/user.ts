@@ -1,12 +1,11 @@
 import { boolean, pgEnum, pgTable, text, timestamp } from "drizzle-orm/pg-core"
 
-export const Role = pgEnum("role", ["user", "owner", "admin"])
+export const Role = pgEnum("role", ["user", "tenant", "landlord", "admin"])
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
-  role: Role("role").default("user").notNull(),
   emailVerified: boolean("email_verified").default(false).notNull(),
   image: text("image"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -14,8 +13,10 @@ export const user = pgTable("user", {
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
-  phoneNumber: text("phone_number").unique(),
-  phoneNumberVerified: boolean("phone_number_verified"),
+  role: Role("role").default("user").notNull(),
+  banned: boolean("banned").default(false),
+  banReason: text("ban_reason"),
+  banExpires: timestamp("ban_expires"),
 })
 
 export type User = typeof user.$inferSelect
